@@ -4,6 +4,7 @@
 #include <sys/ioctl.h>
 #include <termios.h>
 #include <unistd.h>
+#include "piece_table.h"
 
 struct EditorConfig {
   struct termios orig_termios;
@@ -77,6 +78,10 @@ int main(void) {
   enableRawMode();
   getScreenSize(&editor_config.screen_rows, &editor_config.screen_cols);
 
+  PieceTable pieceTable;
+  if (initTable(&pieceTable, "", 0) == -1)
+    fail("initTable");
+
   char c;
 
   clearScreen();
@@ -105,6 +110,8 @@ int main(void) {
       else {
         if (write(STDOUT_FILENO, &c, 1) == -1)
           fail("write");
+        if (addCharacter(&pieceTable, c, 0) == -1)
+          fail("PieceTable addCharacter");
         cursor.x++;
       }
     }
