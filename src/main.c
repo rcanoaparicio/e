@@ -74,6 +74,15 @@ void enableRawMode(void) {
     fail("tcsetattr");
 }
 
+
+void writeContentInScreen(PieceTable* piece_table) {
+  char* buff;
+  unsigned int len = readContent(piece_table, &buff);
+
+  if (write(STDOUT_FILENO, buff, sizeof(char)*len) == -1)
+    fail("write");
+}
+
 int main(void) {
   enableRawMode();
   getScreenSize(&editor_config.screen_rows, &editor_config.screen_cols);
@@ -86,6 +95,8 @@ int main(void) {
 
   clearScreen();
   while (1) {
+    clearScreen();
+    writeContentInScreen(&pieceTable);
     setCursor(cursor.x, cursor.y);
 
     if (read(STDIN_FILENO, &c, 1) == -1 && errno != EAGAIN)
@@ -113,8 +124,6 @@ int main(void) {
         mode = NORMAL;
       }
       else {
-        if (write(STDOUT_FILENO, &c, 1) == -1)
-          fail("write");
         if (addCharacter(&pieceTable, c, cursor.x) == -1)
           fail("PieceTable addCharacter");
         cursor.x++;
