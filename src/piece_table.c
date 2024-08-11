@@ -19,7 +19,7 @@ int initTable(PieceTable* pieceTable, char* original_buffer, unsigned int buffer
   return 0;
 }
 
-int addEntry(Entry* head, unsigned int position, unsigned int idx) {
+int addToEntry(Entry* head, unsigned int position, unsigned int idx) {
   Entry* entry = head;
   Entry* prev = NULL;
   unsigned int currPos = 0;
@@ -87,7 +87,45 @@ int addCharacter(PieceTable* pieceTable, char c, unsigned int position) {
   pieceTable->new_buffer = new_buffer;
   pieceTable->new_buffer[pieceTable->new_buffer_size] = c;
   pieceTable->new_buffer_size++;
-  addEntry(pieceTable->head, position, pieceTable->new_buffer_size - 1);
+  addToEntry(pieceTable->head, position, pieceTable->new_buffer_size - 1);
+  return 0;
+}
+
+int deleteCharacter(PieceTable* pieceTable, unsigned int position) {
+  if (!pieceTable) return -1;
+  Entry* entry = pieceTable->head;
+  unsigned int current_pos = 0;
+  while (entry) {
+    if (entry->len + current_pos > position) {
+      break;
+    }
+    current_pos += entry->len;
+    entry = entry->next;
+  }
+  if (!entry) return -1;
+
+  if (position == current_pos) {
+    entry->idx++;
+    return 0;
+  }
+  
+  if (position == current_pos + entry->len - 1) {
+    entry->len--;
+    return 0;
+  }
+
+  Entry* rightEntry = malloc(sizeof(Entry));
+  if (!rightEntry) return -1;
+
+  unsigned int left_length = position - current_pos;
+  rightEntry->buffer = entry->buffer;
+  rightEntry->idx = entry->idx + left_length + 1;
+  rightEntry->len = entry->len - left_length - 1;
+  rightEntry->next = entry->next;
+
+  entry->len = left_length;
+  entry->next = rightEntry;
+
   return 0;
 }
 

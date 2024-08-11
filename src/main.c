@@ -81,7 +81,6 @@ int main(void) {
   PieceTable pieceTable;
   if (initTable(&pieceTable, "Initial content", 15) == -1)
     fail("initTable");
-  unsigned int tp = 4;
 
   char c;
 
@@ -102,8 +101,13 @@ int main(void) {
         cursor.y--;
       else if (c == 'j')
         cursor.y++;
-      else if (c == 'i' && mode == NORMAL)
+      else if (c == 'i')
         mode = INSERT;
+      else if (c == 'x') {
+        if (deleteCharacter(&pieceTable, cursor.x) == -1)
+          fail("Delete character");
+      }
+
     } else if (mode == INSERT) {
       if (c == '\x1b') {
         mode = NORMAL;
@@ -111,16 +115,15 @@ int main(void) {
       else {
         if (write(STDOUT_FILENO, &c, 1) == -1)
           fail("write");
-        if (addCharacter(&pieceTable, c, tp) == -1)
+        if (addCharacter(&pieceTable, c, cursor.x) == -1)
           fail("PieceTable addCharacter");
         cursor.x++;
-        tp++;
       }
     }
   }
   char* contents = NULL;
   int content_len = readContent(&pieceTable, &contents);
-  printf("Contents len: %d\r\n", content_len);
+  printf("\r\nContents len: %d\r\n", content_len);
   printf("Contents %s\r\n", contents);
   return 0;
 }
