@@ -27,4 +27,6 @@ int deleteCharacter(PieceTable* pieceTable, unsigned int idx);
 
 int initTable(PieceTable* pieceTable, char* original_buffer, unsigned int buffer_size);
 
+int readContent(PieceTable* piece_table, char** buff);
+
 #endif

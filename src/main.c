@@ -79,8 +79,9 @@ int main(void) {
   getScreenSize(&editor_config.screen_rows, &editor_config.screen_cols);
 
   PieceTable pieceTable;
-  if (initTable(&pieceTable, "", 0) == -1)
+  if (initTable(&pieceTable, "Initial content", 15) == -1)
     fail("initTable");
+  unsigned int tp = 4;
 
   char c;
 
@@ -110,11 +111,16 @@ int main(void) {
       else {
         if (write(STDOUT_FILENO, &c, 1) == -1)
           fail("write");
-        if (addCharacter(&pieceTable, c, 0) == -1)
+        if (addCharacter(&pieceTable, c, tp) == -1)
           fail("PieceTable addCharacter");
         cursor.x++;
+        tp++;
       }
     }
   }
+  char* contents = NULL;
+  int content_len = readContent(&pieceTable, &contents);
+  printf("Contents len: %d\r\n", content_len);
+  printf("Contents %s\r\n", contents);
   return 0;
 }
