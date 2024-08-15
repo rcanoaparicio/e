@@ -83,12 +83,36 @@ void writeContentInScreen(PieceTable* piece_table) {
     fail("write");
 }
 
-int main(void) {
+int readFile(char** buffer, char* file_name) {
+  FILE* file = fopen(file_name, "r");
+  if (file == NULL) fail("Could not open file");
+  if (fseek(file, 0, SEEK_END) == -1) fail("Seek end");
+  unsigned int end_pos = ftell(file);
+  printf("%s end pos is %d", file_name, end_pos);
+  unsigned int buff_size = end_pos + 1;
+  (*buffer) = malloc(sizeof(char) * buff_size);
+  if (fseek(file, 0, SEEK_SET) != 0) fail("Seek begin");
+  fread(*buffer, sizeof(char), buff_size, file);
+  if (ferror(file) != 0) fail("fread");
+  fclose(file);
+  (*buffer)[end_pos] = '\0';
+  return buff_size;
+}
+
+
+int main(int argc, char** argv) {
+  char* initial_content = ""; 
+  int initial_content_size = 0;
+  if (argc >= 2) {
+    initial_content_size = readFile(&initial_content, argv[1]);
+    printf("initial content  size: %d", initial_content_size);
+  }
+
   enableRawMode();
   getScreenSize(&editor_config.screen_rows, &editor_config.screen_cols);
 
   PieceTable pieceTable;
-  if (initTable(&pieceTable, "Initial content", 15) == -1)
+  if (initTable(&pieceTable, initial_content, initial_content_size) == -1)
     fail("initTable");
 
   char c;
