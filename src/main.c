@@ -76,11 +76,29 @@ void enableRawMode(void) {
 
 
 void writeContentInScreen(PieceTable* piece_table) {
-  char* buff;
-  unsigned int len = readContent(piece_table, &buff);
+  const unsigned int BUFF_SIZE = 512; 
+  char* contents_buff;
+  unsigned int contents_len = readContent(piece_table, &contents_buff);
 
-  if (write(STDOUT_FILENO, buff, sizeof(char)*len) == -1)
-    fail("write");
+  char write_buff[BUFF_SIZE];
+  unsigned int contents_i = 0;
+  unsigned int write_i = 0;
+
+  while (contents_i < contents_len) {
+    while (contents_i < contents_len && write_i < BUFF_SIZE) {
+      if (contents_buff[contents_i] == '\n') {
+        if (write_i == BUFF_SIZE -1) break;
+        write_buff[write_i++] = '\r';
+        write_buff[write_i++] = contents_buff[contents_i++];
+      }
+      else {
+        write_buff[write_i++] = contents_buff[contents_i++];
+      }
+    }
+    if (write(STDOUT_FILENO, write_buff, sizeof(char)*write_i) == -1)
+      fail("write");
+    write_i = 0;
+  }
 }
 
 int readFile(char** buffer, char* file_name) {
