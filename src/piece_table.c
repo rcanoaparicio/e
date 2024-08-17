@@ -79,12 +79,7 @@ int addToEntry(Entry* head, unsigned int position, unsigned int idx) {
 
 int addCharacter(PieceTable* pieceTable, char c, unsigned int position) {
   if (!pieceTable) return -1;
-  char* new_buffer = malloc(pieceTable->new_buffer_size + 1);
-  strncpy(new_buffer, pieceTable->new_buffer, sizeof(char)*pieceTable->new_buffer_size);
-  if (!new_buffer) return -1;
-  if (pieceTable->new_buffer)
-    free(pieceTable->new_buffer);
-  pieceTable->new_buffer = new_buffer;
+  pieceTable->new_buffer = realloc(pieceTable->new_buffer, sizeof(char) * (pieceTable->new_buffer_size + 1));
   pieceTable->new_buffer[pieceTable->new_buffer_size] = c;
   pieceTable->new_buffer_size++;
   addToEntry(pieceTable->head, position, pieceTable->new_buffer_size - 1);
