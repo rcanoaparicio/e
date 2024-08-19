@@ -21,6 +21,8 @@ typedef struct PieceTable {
 	unsigned int new_buffer_size;
 } PieceTable;
 
+int getLineLength(PieceTable* piece_table, unsigned int line);
+
 int addCharacter(PieceTable* pieceTable, char c, unsigned int idx);
 
 int deleteCharacter(PieceTable* pieceTable, unsigned int idx);
@@ -28,5 +30,7 @@ int deleteCharacter(PieceTable* pieceTable, unsigned int idx);
 int initTable(PieceTable* pieceTable, char* original_buffer, unsigned int buffer_size);
 
 int readContent(PieceTable* piece_table, char** buff);
+
+unsigned int getIndexFromPosition(PieceTable* piece_table, unsigned int char_pos, unsigned int line);
 
 #endif

@@ -12,10 +12,10 @@ struct EditorConfig {
   int screen_cols;
 };
 
-struct Cursor {
+typedef struct Cursor {
   int x;
   int y;
-};
+} Cursor;
 
 enum Mode { NORMAL, INSERT };
 
@@ -117,6 +117,36 @@ int readFile(char** buffer, char* file_name) {
   return buff_size;
 }
 
+int moveCursorX(Cursor* cursor, int x, PieceTable* piece_table) {
+  if (cursor == NULL) {
+    return -1;
+  }
+  if (x < 0 && cursor->x + x >= 0) {
+    cursor->x += x;
+  }
+
+  if (x > 0) {
+    int line_length = getLineLength(piece_table, cursor->y);
+    cursor->x =
+      cursor->x + x < line_length ? cursor->x + x : cursor->x; 
+  }
+
+  return 0;
+}
+
+int moveCursorY(Cursor* cursor, int y, PieceTable* piece_table) {
+  if (cursor == NULL) {
+    return -1;
+  }
+  if ((y < 0 && cursor->y + y >= 0) || y > 0) {
+    int line_length = getLineLength(piece_table, cursor->y + y);
+    if (line_length == 0) return 0;
+    cursor->y += y;
+    if (line_length - 1 < cursor->x) cursor->x = line_length - 1;
+  }
+
+  return 0;
+}
 
 int main(int argc, char** argv) {
   char* initial_content = ""; 
@@ -147,26 +177,38 @@ int main(int argc, char** argv) {
       if (c == 'q')
         break;
       else if (c == 'h' && cursor.x > 0)
-        cursor.x--;
+        moveCursorX(&cursor, -1, &pieceTable);
       else if (c == 'l')
-        cursor.x++;
+        moveCursorX(&cursor, +1, &pieceTable);
       else if (c == 'k' && cursor.y > 0)
-        cursor.y--;
+        moveCursorY(&cursor, -1, &pieceTable);
       else if (c == 'j')
-        cursor.y++;
+        moveCursorY(&cursor, +1, &pieceTable);
       else if (c == 'i')
         mode = INSERT;
+      else if (c == 'a') {
+        mode = INSERT;
+        cursor.x++;
+      }
       else if (c == 'x') {
-        if (deleteCharacter(&pieceTable, cursor.x) == -1)
+        unsigned int position = getIndexFromPosition(&pieceTable, cursor.x, cursor.y);
+        if (deleteCharacter(&pieceTable, position) == -1)
           fail("Delete character");
       }
-
+      else if (c == 'X' && cursor.x > 0) {
+        unsigned int position = getIndexFromPosition(&pieceTable, cursor.x, cursor.y);
+        if (deleteCharacter(&pieceTable, position - 1) == -1)
+          fail("Delete character");
+        cursor.x--;
+      }
     } else if (mode == INSERT) {
       if (c == '\x1b') {
         mode = NORMAL;
+        moveCursorX(&cursor, -1, &pieceTable);
       }
       else {
-        if (addCharacter(&pieceTable, c, cursor.x) == -1)
+        unsigned int position = getIndexFromPosition(&pieceTable, cursor.x, cursor.y);
+        if (addCharacter(&pieceTable, c, position) == -1)
           fail("PieceTable addCharacter");
         cursor.x++;
       }

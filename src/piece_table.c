@@ -77,6 +77,30 @@ int addToEntry(Entry* head, unsigned int position, unsigned int idx) {
   return 0;
 }
 
+unsigned int getIndexFromPosition(PieceTable* piece_table, unsigned int char_pos, unsigned int line) {
+  unsigned int current_line = 0;
+  unsigned int current_idx = 0;
+  unsigned int i;
+  char c;
+  Entry* entry = piece_table->head;
+  while (entry && current_line < line) {
+    char* buff;
+    if (entry->buffer == ORIGINAL)
+      buff = piece_table->original_buffer;
+    else
+      buff = piece_table->new_buffer;
+    for (i = 0; i < entry->len && current_line < line; i++) { 
+      c = buff[entry->idx + i];
+      if (c == '\n') {
+        current_line++;
+      }
+      current_idx++;
+    }
+    if (current_line < line) entry = entry->next;
+  }
+  return current_idx + char_pos;
+}
+
 int addCharacter(PieceTable* pieceTable, char c, unsigned int position) {
   if (!pieceTable) return -1;
   pieceTable->new_buffer = realloc(pieceTable->new_buffer, sizeof(char) * (pieceTable->new_buffer_size + 1));
@@ -84,6 +108,48 @@ int addCharacter(PieceTable* pieceTable, char c, unsigned int position) {
   pieceTable->new_buffer_size++;
   addToEntry(pieceTable->head, position, pieceTable->new_buffer_size - 1);
   return 0;
+}
+
+int getLineLength(PieceTable* piece_table, unsigned int line) {
+  unsigned int current_line = 0;
+  char c;
+  Entry* entry = piece_table->head;
+  unsigned int i = 0;
+  while (current_line < line && entry != NULL) {
+    char* buff = NULL;
+    if (entry->buffer == ORIGINAL)
+      buff = piece_table->original_buffer;
+    else
+      buff = piece_table->new_buffer;
+    for (i = 0; i < entry->len && current_line < line; i++) { 
+      c = buff[entry->idx + i];
+      if (c == '\n') {
+        current_line++;
+      }
+    }
+    if (current_line != line)
+      entry = entry->next;
+  }
+
+  if (current_line != line) return 0;
+  unsigned int length = 0;
+  while (entry != NULL) {
+    char* buff = NULL;
+    if (entry->buffer == ORIGINAL)
+      buff = piece_table->original_buffer;
+    else
+      buff = piece_table->new_buffer;
+    for (; i < entry->len; i++) { 
+      c = buff[entry->idx + i];
+      if (c == '\n') {
+        return length;
+      }
+      length++;
+    }
+    i = 0;
+    entry = entry->next;
+  }
+  return length;
 }
 
 int deleteCharacter(PieceTable* pieceTable, unsigned int position) {
@@ -101,6 +167,7 @@ int deleteCharacter(PieceTable* pieceTable, unsigned int position) {
 
   if (position == current_pos) {
     entry->idx++;
+    entry->len--;
     return 0;
   }
   
